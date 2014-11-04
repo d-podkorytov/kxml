@@ -57,7 +57,7 @@ real atof(string data) {
 	return atof(toStringz(data));
 }
 
-string tostring(T)(T data) {
+string toString(T)(T data) {
 	return to!(string)(data);
 }
 
@@ -72,7 +72,7 @@ string regrep(string input, string pattern, string delegate(string) translator) 
 
 import std.stdio;
 
-private void logline(string str) {
+private void logLine(string str) {
 	// 64 bit DMD doesn't like calling varargs very much.
 	std.stdio.writef("%s", str);
 }
@@ -86,17 +86,17 @@ private void logline(string str) {
  * XmlNode xml = xmlstring.readDocument();
  * xmlstring = xml.toString;
  * // ensure that the string doesn't mutate after a second reading, it shouldn't
- * debug(xml) logline("kxml.xml unit test\n");
+ * debug(xml) logLine("kxml.xml unit test\n");
  * assert(xmlstring.readDocument().toString == xmlstring);
- * debug(xpath) logline("kxml.xml XPath unit test\n");
+ * debug(xpath) logLine("kxml.xml XPath unit test\n");
  * XmlNode[] searchlist = xml.parseXPath("message/flags");
  * assert(searchlist.length == 2 && searchlist[0].getName == "flags");
  * 
- * debug(xpath) logline("kxml.xml deep XPath unit test\n");
+ * debug(xpath) logLine("kxml.xml deep XPath unit test\n");
  * searchlist = xml.parseXPath("//message//flags");
  * assert(searchlist.length == 2 && searchlist[0].getName == "flags");
  * 
- * debug(xpath) logline("kxml.xml attribute match XPath unit test\n");
+ * debug(xpath) logLine("kxml.xml attribute match XPath unit test\n");
  * searchlist = xml.parseXPath("/message[@type=\"message\" and @responseID=\"1234abcd\"]/flags");
  * assert(searchlist.length == 2 && searchlist[0].getName == "flags");
  * searchlist = xml.parseXPath("message[@type=\"toaster\"]/flags");
@@ -112,7 +112,7 @@ XmlNode readDocument(string src, bool preserveWS=false)
 	try {
 		root.addChildren(src, preserveWS);
 	} catch (XmlError e) {
-		logline("Caught exception from input string:\n" ~ pointcpy ~ "\n");
+		logLine("Caught exception from input string:\n" ~ pointcpy ~ "\n");
 		throw e;
 	}
 	return root;
@@ -204,13 +204,13 @@ class XmlNode
 	/// Set an attribute to an integer value (stored internally as a string).
 	/// The attribute is created if it doesn't exist.
 	XmlNode setAttribute(string name, long value) {
-		return setAttribute(name, tostring(value));
+		return setAttribute(name, .toString(value));
 	}
-	
+
 	/// Set an attribute to a float value (stored internally as a string).
 	/// The attribute is created if it doesn't exist.
 	XmlNode setAttribute(string name, float value) {
-		return setAttribute(name, tostring(value));
+		return setAttribute(name, .toString(value));
 	}
 	
 	/// Remove the attribute with name.
@@ -421,7 +421,7 @@ class XmlNode
 		// don't break xml whitespace specs unless requested
 		if (!preserveWS) token = stripRight(token);
 		xsrc = xsrc[slice .. $];
-		debug(xml) logline("I found cdata text: " ~ token ~ "\n");
+		debug(xml) logLine("I found cdata text: " ~ token ~ "\n");
 		// DO NOT CHANGE THIS TO USE THE CONSTRUCTOR, BECAUSE THE CONSTRUCTOR IS FOR USER USE
 		auto cd = (_docroot ? _docroot.allocCData : new CData);
 		cd._cdata = token;
@@ -435,7 +435,7 @@ class XmlNode
 		slice = readUntil(xsrc, ">");
 		token = strip(xsrc[1 .. slice]);
 		xsrc = xsrc[slice+1 .. $];
-		debug(xml) logline("I found a closing tag (yikes):" ~ token ~ "\n");
+		debug(xml) logLine("I found a closing tag (yikes):" ~ token ~ "\n");
 		if (token.icmp(parent.getName()) != 0) throw new XmlError("Wrong close tag: " ~ token ~ " for parent tag " ~ parent.getName);
 	}
 	
@@ -455,7 +455,7 @@ class XmlNode
 			return;
 		}
 		// rip off attributes while looking for ?>
-		debug(xml) logline("Got a " ~ name ~ " XML processing instruction\n");
+		debug(xml) logLine("Got a " ~ name ~ " XML processing instruction\n");
 		newnode = (_docroot ? _docroot.allocXmlPI : new XmlPI);
 		newnode.setName(name);
 		xsrc = stripLeft(xsrc);
@@ -476,7 +476,7 @@ class XmlNode
 		slice = readUntil(xsrc, "]]>");
 		token = xsrc[0 .. slice];
 		xsrc = xsrc[slice+3 .. $];
-		debug(xml) logline("I found ucdata text: " ~ token ~ "\n");
+		debug(xml) logLine("I found ucdata text: " ~ token ~ "\n");
 		// DO NOT CHANGE THIS TO USE THE CONSTRUCTOR, BECAUSE THE CONSTRUCTOR IS FOR USER USE
 		auto cd = (_docroot ? _docroot.allocUCData : new UCData);
 		cd._cdata = token;
@@ -513,7 +513,7 @@ class XmlNode
 		// rip off name
 		string name = getWSToken(xsrc);
 		// rip off attributes while looking for ?>
-		debug(xml) logline("Got a " ~ name ~ " open tag\n");
+		debug(xml) logLine("Got a " ~ name ~ " open tag\n");
 		auto newnode = (_docroot ? _docroot.allocXmlNode : new XmlNode);
 		newnode.setName(name);
 		xsrc = stripLeft(xsrc);
@@ -528,7 +528,7 @@ class XmlNode
 			// check for >
 			if (!xsrc.length || xsrc[0] != '>') throw new XmlError("Unable to find end of " ~ name ~ " tag");
 			xsrc = stripLeft(xsrc[1 .. $]);
-			debug(xml) logline("self-closing tag!\n");
+			debug(xml) logLine("self-closing tag!\n");
 			return;
 		} 
 		// check for >
@@ -555,7 +555,7 @@ class XmlNode
 		int ret = 0;
 		// this has been removed from normal code flow to be XML std compliant, preserve whitespace
 		if (!preserveWS) xsrc = stripLeft(xsrc); 
-		debug(xml) logline("Parsing text: " ~ xsrc ~ "\n");
+		debug(xml) logLine("Parsing text: " ~ xsrc ~ "\n");
 		if (!xsrc.length) {
 			return 0;
 		}
@@ -667,7 +667,7 @@ class XmlNode
 		} else {
 			throw new XmlError("Unexpected end of input for attribute " ~ name ~ " in node " ~ xml.getName);
 		}
-		debug(xml) logline("Got attr " ~ name ~ " and value \"" ~ value ~ "\"\n");
+		debug(xml) logLine("Got attr " ~ name ~ " and value \"" ~ value ~ "\"\n");
 		xml._attributes[name] = value;
 		attrstr = stripLeft(attrstr);
 	}
@@ -677,7 +677,7 @@ class XmlNode
 	XmlNode[] parseXPath(string xpath, bool caseSensitive = false) {
 		// rip off the leading / if it's there and we're not looking for a deep path
 		if (!isDeepPath(xpath) && xpath.length && xpath[0] == '/') xpath = xpath[1 .. $];
-		debug(xpath) logline("Got xpath " ~ xpath ~ " in node " ~ getName ~ "\n");
+		debug(xpath) logLine("Got xpath " ~ xpath ~ " in node " ~ getName ~ "\n");
 		string truncxpath;
 		auto nextnode = getNextNode(xpath, truncxpath);
 		string predmatch;
@@ -687,14 +687,14 @@ class XmlNode
 			// rip out attribute string
 			predmatch = nextnode[offset .. $];
 			nextnode = nextnode[0 .. offset];
-			debug(xpath) logline("Found predicate chunk: " ~ predmatch ~ "\n");
+			debug(xpath) logLine("Found predicate chunk: " ~ predmatch ~ "\n");
 		}
-		debug(xpath) logline("Looking for " ~ nextnode ~ "\n");
+		debug(xpath) logLine("Looking for " ~ nextnode ~ "\n");
 		XmlNode[] retarr;
 		// search through the children to see if we have a direct match on the next node
 		if (!nextnode.length) {
 			// we were searching for nodes, and this is one
-			debug(xpath) logline("Found a node we want! name is: " ~ getName ~ "\n");
+			debug(xpath) logLine("Found a node we want! name is: " ~ getName ~ "\n");
 			retarr ~= this;
 		} else if (nextnode[0] == '@') {
 			if( matchXPathPredicate(nextnode, caseSensitive)) {
@@ -704,7 +704,7 @@ class XmlNode
 		} else foreach(child; getChildren) if (!child.isCData && !child.isXmlComment && !child.isXmlPI && child.matchXPathPredicate(predmatch, caseSensitive)) {
 			if (!nextnode.length || (caseSensitive && child.getName == nextnode) || (!caseSensitive && !child.getName().icmp(nextnode))) {
 				// child that matches the search string, pass on the truncated string
-				debug(xpath) logline("Sending " ~ truncxpath ~ " to " ~ child.getName ~ "\n");
+				debug(xpath) logLine("Sending " ~ truncxpath ~ " to " ~ child.getName ~ "\n");
 				retarr ~= child.parseXPath(truncxpath, caseSensitive);
 			}
 		}
@@ -719,7 +719,7 @@ class XmlNode
 	}
 	
 	private bool matchXPathPredicate(string predstr, bool caseSen) {
-		debug(xpath) logline("matching predicate string " ~ predstr ~ "\n");
+		debug(xpath) logLine("matching predicate string " ~ predstr ~ "\n");
 		// strip off the encasing [] if it exists
 		if (!predstr.length) {
 			return true;
@@ -769,10 +769,10 @@ class XmlNode
 		res.length = predlist.length;
 		int numOrdTerms = 0;
 		debug(xpath)foreach (pred; predlist) {
-			logline("Term: " ~ pred ~ "\n");
+			logLine("Term: " ~ pred ~ "\n");
 		}
 		foreach (i, pred; predlist) if (!(i%2)) {
-			debug(xpath) logline("matching on " ~ pred ~ "\n");
+			debug(xpath) logLine("matching on " ~ pred ~ "\n");
 			bool isattr   = false;		// is elem1 @attribute
 			bool verbatim = false;		// is elem2 quoted string
 			string elem1;			// Left of comparator
@@ -816,7 +816,7 @@ class XmlNode
 			// there should be NO zero-length strings this far in
 			if (isattr) {
 				if (!hasAttribute(elem1)) {
-					debug(xpath) logline("could not find attr " ~ elem1 ~ "\n");
+					debug(xpath) logLine("could not find attr " ~ elem1 ~ "\n");
 					res[i] = false;
 					continue;
 				}
@@ -830,7 +830,7 @@ class XmlNode
 				if (compareXPathPredicate(elem1, comparator, elem2, this.getCData, caseSen)) {
 					res[i] = true;
 				}
-				debug(xpath)if(!res[j]) logline("did not match this node\n");
+				debug(xpath)if(!res[j]) logLine("did not match this node\n");
 			} else {
 				// assume elem1 is a tag
 				foreach(child; getChildren) { 
@@ -852,13 +852,13 @@ class XmlNode
 		bool[] ordTerms;
 		ordTerms.length = numOrdTerms + 1;
 		ordTerms[0] = res[0];
-		debug(xpath) logline("res[0]=" ~ tostring(res[0]) ~ "\n");
+		debug(xpath) logLine("res[0]=" ~ toString(res[0]) ~ "\n");
 		numOrdTerms = 0; // we're using this as current position, now
 		foreach (i, pred; predlist) if (i%2) {
 			if (pred == "and") {
-				debug(xpath) logline("combining anded terms on ord term " ~ tostring(numOrdTerms) ~ " and i=" ~ tostring(i) ~ " with res.length=" ~ tostring(res.length) ~ " and attrlist.length=" ~ tostring(predlist.length) ~ "\n");
+				debug(xpath) logLine("combining anded terms on ord term " ~ toString(numOrdTerms) ~ " and i=" ~ toString(i) ~ " with res.length=" ~ toString(res.length) ~ " and attrlist.length=" ~ toString(predlist.length) ~ "\n");
 				ordTerms[numOrdTerms] &= res[i+1];
-				debug(xpath) logline("res[" ~ tostring(i+1) ~ "]=" ~ tostring(res[i+1]) ~ "\n");
+				debug(xpath) logLine("res[" ~ toString(i+1) ~ "]=" ~ toString(res[i+1]) ~ "\n");
 			} else if (pred == "or") {
 				numOrdTerms++;
 				ordTerms[numOrdTerms] = res[i+1];
@@ -869,7 +869,7 @@ class XmlNode
 		// now that results have been determined, map them to a final result using "and" and "or"
 		bool ret = false;
 		foreach (val; ordTerms) ret |= val;
-		debug(xpath) logline("Ended up with " ~ tostring(ret) ~ "\n");
+		debug(xpath) logLine("Ended up with " ~ toString(ret) ~ "\n");
 		return ret;
 	}
 	
@@ -906,7 +906,7 @@ class XmlNode
 				
 				if (!i1num || !i2num) {
 					if ((elem1value != elem2 && caseSen) || (elem1value.icmp(elem2) != 0 && !caseSen)) {
-						debug(xpath) logline("search value " ~ elem2 ~ " did not match attribute value " ~ elem1value ~ "\n");
+						debug(xpath) logLine("search value " ~ elem2 ~ " did not match attribute value " ~ elem1value ~ "\n");
 						lres = false;
 					} else {
 						lres = true;
@@ -1322,7 +1322,7 @@ class XmlDocument : XmlNode {
 		try {
 			addChildren(constring, preserveWS);
 		} catch (XmlError e) {
-			logline("Caught exception from input string:\n" ~ pointcpy ~ "\n");
+			logLine("Caught exception from input string:\n" ~ pointcpy ~ "\n");
 			throw e;
 		}
 	}
@@ -1474,29 +1474,29 @@ unittest {
 	XmlNode xml = xmlstring.readDocument();
 	xmlstring = xml.toString;
 	// ensure that the string doesn't mutate after a second reading, it shouldn't
-	logline("kxml.xml test\n");
+	logLine("kxml.xml test\n");
 	assert(xmlstring.readDocument().toString == xmlstring);
-	logline("kxml.xml XPath test\n");
+	logLine("kxml.xml XPath test\n");
 	XmlNode[] searchlist = xml.parseXPath("message/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	
-	logline("kxml.xml deep XPath test\n");
+	logLine("kxml.xml deep XPath test\n");
 	searchlist = xml.parseXPath("//message//flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	
-	logline("kxml.xml attribute match 'and' XPath test\n");
+	logLine("kxml.xml attribute match 'and' XPath test\n");
 	searchlist = xml.parseXPath("/message[@type=\"message\" and @responseID=\"1234abcd\"]/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	searchlist = xml.parseXPath("message[@type=\"toaster\"]/flags");
 	assert(searchlist.length == 0);
 	
-	logline("kxml.xml attribute match 'or' XPath test\n");
+	logLine("kxml.xml attribute match 'or' XPath test\n");
 	searchlist = xml.parseXPath("/message[@type=\"message\" or @responseID=\"134abcd\"]/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	searchlist = xml.parseXPath("/message[@type=\"yarblemessage\" or @responseID=\"1234abcd\"]/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	
-	logline("kxml.xml XPath inequality test\n");
+	logLine("kxml.xml XPath inequality test\n");
 	searchlist = xml.parseXPath("/message[@order<6]/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	searchlist = xml.parseXPath("/message[@order>4]/flags");
@@ -1510,11 +1510,11 @@ unittest {
 	searchlist = xml.parseXPath("/message[@order=5]/flags");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	
-	/*logline("kxml.xml XPath subnode match test\n");
+	/*logLine("kxml.xml XPath subnode match test\n");
 	searchlist = xml.parseXPath("/message[flags@tweak]");
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");*/
-	
-	logline("kxml.xml XPath ??? tests\n");
+
+	logLine("kxml.xml XPath ??? tests\n");
 	searchlist = xml.parseXPath(`//@text`);
 	assert(searchlist.length == 1 && searchlist[0].getCData == "weather 12345");
 	searchlist = xml.parseXPath(`/message[flags="triggered" and flags="targeted"]/@order`);
@@ -1523,12 +1523,12 @@ unittest {
 	assert(searchlist.length == 2 && searchlist[0].getName == "flags");
 	searchlist = xml.parseXPath(`/message[@order<6 and flags="fail"]/flags`);
 	assert(searchlist.length == 0);
-	
+
 	xmlstring = "<![CDATA[cdata test <>>>>]]>";
 	xml = xmlstring.readDocument();
 	assert(xml.getCData == "cdata test <>>>>");
 	assert(xml.toString() == "<![CDATA[cdata test <>>>>]]>");
-	
+
 	xmlstring =
 		`<table class="table1">
 	<tr>	 <th>URL </th><td><a href="path1/path2">Link 1.1</a></td></tr>
@@ -1541,10 +1541,10 @@ unittest {
 	<tr ab="9">  <th>Head</th><td>Text 2.3</td></tr>
 	</table>`;
 	
-	logline("Running More tests\n");
+	logLine("Running More tests\n");
 	xml = readDocument(xmlstring);
 	
-	logline("kxml.xml XPath no-match tests\n");
+	logLine("kxml.xml XPath no-match tests\n");
 	searchlist = xml.parseXPath(`//ab`);
 	assert(searchlist.length == 0);
 	searchlist = xml.parseXPath(`//ab=9`);		// Should this throw?
@@ -1554,7 +1554,7 @@ unittest {
 	searchlist = xml.parseXPath(`//tr[ab<=7]/td`);
 	assert(searchlist.length == 0);
 	
-	logline("kxml.xml XPath attr tests\n");
+	logLine("kxml.xml XPath attr tests\n");
 	searchlist = xml.parseXPath(`//@ab`);
 	assert(searchlist.length == 4);
 	searchlist = xml.parseXPath(`//@ab<=7`);
@@ -1564,13 +1564,13 @@ unittest {
 	//	searchlist = xml.parseXPath(`//@class!="table2"//@ab`);	// Should this work?
 	//	assert(searchlist.length == 2);
 	
-	logline("kxml.xml XPath predicate tests\n");
+	logLine("kxml.xml XPath predicate tests\n");
 	searchlist = xml.parseXPath(`//tr[@ab<=7]/td`);
 	assert(searchlist.length == 1 && searchlist[0].getCData == "Text 1.3");
 	searchlist = xml.parseXPath(`//tr[@ab>=9 and th="Head"]/td`);
 	assert(searchlist.length == 1 && searchlist[0].getCData == "Text 2.3");
 	
-	logline("kxml.xml XPath cdata matching tests\n");
+	logLine("kxml.xml XPath cdata matching tests\n");
 	searchlist = xml.parseXPath(`//td[.="Text 2.3"]`);
 	assert(searchlist.length == 1);
 	
